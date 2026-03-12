@@ -1,226 +1,821 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto AI Analyzer</title>
 
     <style>
+        :root {
+            --bg: #09111f;
+            --panel: rgba(10, 17, 30, 0.88);
+            --panel-strong: rgba(12, 21, 37, 0.96);
+            --line: rgba(148, 163, 184, 0.18);
+            --text: #edf3ff;
+            --muted: #9fb1cb;
+            --accent: #54c4ff;
+            --accent-strong: #7c5cff;
+            --green: #23c483;
+            --green-bg: rgba(35, 196, 131, 0.14);
+            --red: #ff6b6b;
+            --red-bg: rgba(255, 107, 107, 0.14);
+            --amber: #f6c35b;
+            --amber-bg: rgba(246, 195, 91, 0.14);
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+            --radius: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #0f0f0f;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 60px auto;
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(84, 196, 255, 0.22), transparent 26%),
+                radial-gradient(circle at top right, rgba(124, 92, 255, 0.2), transparent 30%),
+                linear-gradient(180deg, #060b14 0%, #0b1423 45%, #09111f 100%);
+        }
+
+        .page-shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 44px 0 64px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 32px;
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            background:
+                linear-gradient(135deg, rgba(84, 196, 255, 0.12), rgba(124, 92, 255, 0.08)),
+                rgba(8, 14, 26, 0.92);
+            box-shadow: var(--shadow);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -60px -80px auto;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(84, 196, 255, 0.26), transparent 65%);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #bfe7ff;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px rgba(35, 196, 131, 0.7);
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
         }
 
         h1 {
-            font-size: 24px;
-            margin-bottom: 24px;
+            margin-top: 18px;
+            font-size: clamp(2.4rem, 6vw, 4.3rem);
+            line-height: 0.96;
+            letter-spacing: -0.05em;
+        }
+
+        .hero-copy {
+            max-width: 720px;
+            margin-top: 16px;
+            color: var(--muted);
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .pill {
+            padding: 8px 12px;
+            border: 1px solid rgba(191, 231, 255, 0.12);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #d9eeff;
+            font-size: 13px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.9fr);
+            gap: 22px;
+            margin-top: 22px;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+
+        .panel.primary,
+        .panel.compare {
+            padding: 26px;
+        }
+
+        .panel.side {
+            padding: 26px;
+        }
+
+        .panel.compare {
+            grid-column: 1 / -1;
+            background: linear-gradient(180deg, rgba(10, 17, 30, 0.96), rgba(10, 17, 30, 0.84));
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
+            font-size: 1.28rem;
+            letter-spacing: -0.03em;
+        }
+
+        .panel-copy {
+            margin-top: 6px;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .timestamp {
+            padding: 10px 14px;
+            min-width: 180px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            color: #c8d6ea;
+            text-align: right;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .control-row,
+        .compare-row {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
         }
 
         input {
-            padding: 10px;
-            width: 70%;
-            font-size: 16px;
-            background-color: #1e1e1e;
-            color: white;
-            border: 1px solid #444;
-            border-radius: 6px;
+            width: 100%;
+            padding: 15px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+        }
+
+        input:focus {
+            border-color: rgba(84, 196, 255, 0.65);
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-1px);
         }
 
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 6px;
+            padding: 0 20px;
+            border: 0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #05111e;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
-            margin-left: 8px;
+            transition: transform 0.18s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 16px 30px rgba(84, 196, 255, 0.18);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
         }
 
         button:disabled {
-            background-color: #444;
+            opacity: 0.55;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        #marketData {
-            margin-top: 24px;
+        .status {
+            margin-top: 14px;
+            padding: 13px 15px;
+            border-radius: 14px;
+            border: 1px solid transparent;
             font-size: 14px;
-            color: #a0a0a0;
+            line-height: 1.5;
         }
 
-        #badge {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
+        .status-hidden {
+            display: none;
         }
 
-        #result {
+        .status-info {
+            border-color: rgba(84, 196, 255, 0.22);
+            background: rgba(84, 196, 255, 0.09);
+            color: #d4efff;
+        }
+
+        .status-error {
+            border-color: rgba(255, 107, 107, 0.24);
+            background: rgba(255, 107, 107, 0.1);
+            color: #ffd0d0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            background: var(--panel-strong);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-value {
+            margin-top: 10px;
+            font-size: 1.18rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-subvalue {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .insight-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             margin-top: 16px;
-            line-height: 1.7;
+        }
+
+        .sentiment {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .sentiment-hidden {
+            display: none;
+        }
+
+        .sentiment::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        .sentiment-bullish {
+            color: var(--green);
+            background: var(--green-bg);
+        }
+
+        .sentiment-bearish {
+            color: var(--red);
+            background: var(--red-bg);
+        }
+
+        .sentiment-neutral {
+            color: var(--amber);
+            background: var(--amber-bg);
+        }
+
+        .result-card,
+        .compare-card {
+            margin-top: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.035);
+            line-height: 1.75;
             font-size: 15px;
         }
 
-        #history {
-            margin-top: 40px;
-            border-top: 1px solid #333;
-            padding-top: 16px;
+        .empty-state {
+            color: var(--muted);
+        }
+
+        .history-list {
+            margin-top: 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .history-item,
+        .history-empty {
+            padding: 14px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .history-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #222;
-            font-size: 14px;
-            color: #a0a0a0;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .history-empty {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .history-coin {
+            font-weight: 700;
+        }
+
+        .history-meta {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .compare-coin {
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .compare-coin h3 {
+            font-size: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .compare-coin p {
+            margin-top: 8px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .change-up {
+            color: var(--green);
+        }
+
+        .change-down {
+            color: var(--red);
+        }
+
+        .change-flat {
+            color: var(--amber);
+        }
+
+        @media (max-width: 980px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page-shell {
+                width: min(100% - 20px, 100%);
+                padding-top: 22px;
+            }
+
+            .hero,
+            .panel.primary,
+            .panel.side,
+            .panel.compare {
+                padding: 20px;
+            }
+
+            .panel-head,
+            .control-row,
+            .compare-row,
+            .insight-meta,
+            .history-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .timestamp {
+                min-width: 0;
+                text-align: left;
+            }
+
+            .stats-grid,
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                min-height: 52px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Crypto AI Analyzer</h1>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="eyebrow">Live AI market briefing</div>
+            <h1>Crypto AI Analyzer</h1>
+            <p class="hero-copy">
+                Real-time crypto snapshots from CoinGecko, translated into plain language with AI so the market feels readable instead of noisy.
+            </p>
+            <div class="pill-row">
+                <span class="pill">BTC</span>
+                <span class="pill">ETH</span>
+                <span class="pill">SOL</span>
+                <span class="pill">BNB</span>
+                <span class="pill">XRP</span>
+                <span class="pill">ADA</span>
+                <span class="pill">DOGE</span>
+            </div>
+        </header>
 
-    <input type="text" id="symbolInput" placeholder="Enter symbol: BTC, ETH, SOL...">
-    <button>Analyze</button>
+        <main class="dashboard">
+            <section class="panel primary">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">Single Coin Analysis</h2>
+                        <p class="panel-copy">Enter a supported ticker and get the market pulse, a sentiment label, and a short AI explanation.</p>
+                    </div>
+                    <div id="updatedAt" class="timestamp">Waiting for analysis</div>
+                </div>
 
-    <div id="marketData"></div>
-    <div id="badge"></div>
-    <div id="result"></div>
+                <div class="control-row">
+                    <input type="text" id="symbolInput" placeholder="Enter symbol: BTC, ETH, SOL..." maxlength="10">
+                    <button id="analyzeBtn">Analyze</button>
+                </div>
 
-    <div id="history"></div>
+                <div id="feedback" class="status status-hidden"></div>
+                <div id="marketData" class="stats-grid"></div>
 
-    <hr style="border-color:#333; margin-top:40px;">
-    <h2 style="font-size:18px; margin-top:24px;">Compare two coins</h2>
-    <input type="text" id="compare1" placeholder="First coin: BTC" style="width:30%;">
-    <input type="text" id="compare2" placeholder="Second coin: ETH" style="width:30%; margin-left:8px;">
-    <button id="compareBtn" style="margin-left:8px;">Compare</button>
-    <div id="compareResult" style="margin-top:16px; line-height:1.7; font-size:15px;"></div>
+                <div class="insight-meta">
+                    <div id="badge" class="sentiment sentiment-hidden"></div>
+                </div>
+
+                <article id="result" class="result-card empty-state">
+                    Enter a coin above to generate a market explanation.
+                </article>
+            </section>
+
+            <aside class="panel side">
+                <h2 class="panel-title">Session History</h2>
+                <p class="panel-copy">Recent lookups stay here while this tab is open, so you can compare the flow of your searches.</p>
+                <div id="history" class="history-list">
+                    <div class="history-empty">No searches yet. Start with BTC, ETH, or SOL.</div>
+                </div>
+            </aside>
+
+            <section class="panel compare">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">Compare Two Coins</h2>
+                        <p class="panel-copy">Pick two tickers and get a short AI comparison based on price, 24-hour change, and trading volume.</p>
+                    </div>
+                </div>
+
+                <div class="compare-row">
+                    <input type="text" id="compare1" placeholder="First coin: BTC" maxlength="10">
+                    <input type="text" id="compare2" placeholder="Second coin: ETH" maxlength="10">
+                    <button id="compareBtn">Compare</button>
+                </div>
+
+                <div id="compareFeedback" class="status status-hidden"></div>
+                <div id="compareCards" class="compare-grid"></div>
+                <div id="compareResult" class="compare-card empty-state">Compare two supported coins to generate a side-by-side AI summary.</div>
+            </section>
+        </main>
+    </div>
 
     <script>
-        let lastSymbol = "";
+        let lastAnalyzedSymbol = "";
 
         const input = document.getElementById("symbolInput");
-        const button = document.querySelector("button");
+        const analyzeBtn = document.getElementById("analyzeBtn");
         const result = document.getElementById("result");
         const marketData = document.getElementById("marketData");
         const badge = document.getElementById("badge");
         const history = document.getElementById("history");
+        const updatedAt = document.getElementById("updatedAt");
+        const feedback = document.getElementById("feedback");
+        const compare1 = document.getElementById("compare1");
+        const compare2 = document.getElementById("compare2");
+        const compareBtn = document.getElementById("compareBtn");
+        const compareFeedback = document.getElementById("compareFeedback");
+        const compareCards = document.getElementById("compareCards");
+        const compareResult = document.getElementById("compareResult");
 
-        // When the user changes what's in the input, re-enable the button
+        function formatCurrencyFull(value) {
+            return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+                maximumFractionDigits: 2,
+            }).format(value);
+        }
+
+        function formatCurrencyCompact(value) {
+            return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+                notation: "compact",
+                maximumFractionDigits: 1,
+            }).format(value);
+        }
+
+        function formatPercent(value) {
+            return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+        }
+
+        function changeTone(value) {
+            if (value > 2) {
+                return { label: "Bullish", className: "sentiment sentiment-bullish", textClass: "change-up" };
+            }
+            if (value < -2) {
+                return { label: "Bearish", className: "sentiment sentiment-bearish", textClass: "change-down" };
+            }
+            return { label: "Neutral", className: "sentiment sentiment-neutral", textClass: "change-flat" };
+        }
+
+        function setStatus(element, message, tone) {
+            element.textContent = message;
+            element.className = `status status-${tone}`;
+        }
+
+        function clearStatus(element) {
+            element.textContent = "";
+            element.className = "status status-hidden";
+        }
+
+        async function fetchJson(url) {
+            const response = await fetch(url);
+            const data = await response.json().catch(() => ({ detail: "Unexpected server response." }));
+
+            if (!response.ok) {
+                throw new Error(data.detail || data.error || "Request failed.");
+            }
+
+            return data;
+        }
+
+        function renderMarketCards(market) {
+            const tone = changeTone(market.change_24h);
+            marketData.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Coin</div>
+                    <div class="stat-value">${market.symbol}</div>
+                    <div class="stat-subvalue">${market.name}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Spot Price</div>
+                    <div class="stat-value">${formatCurrencyFull(market.price)}</div>
+                    <div class="stat-subvalue">Live market price</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24h Move</div>
+                    <div class="stat-value ${tone.textClass}">${formatPercent(market.change_24h)}</div>
+                    <div class="stat-subvalue">Short-term momentum</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">24h Volume</div>
+                    <div class="stat-value">${formatCurrencyCompact(market.volume_24h)}</div>
+                    <div class="stat-subvalue">${formatCurrencyFull(market.volume_24h)}</div>
+                </div>
+            `;
+
+            badge.className = tone.className;
+            badge.textContent = `${tone.label} market tone`;
+            updatedAt.textContent = `Updated ${new Date(market.updated_at * 1000).toLocaleTimeString()}`;
+        }
+
+        function appendHistory(market) {
+            const tone = changeTone(market.change_24h);
+            const emptyState = history.querySelector(".history-empty");
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const item = document.createElement("div");
+            item.className = "history-item";
+            item.innerHTML = `
+                <div>
+                    <div class="history-coin">${market.symbol} <span class="history-meta">${market.name}</span></div>
+                    <div class="history-meta">${formatCurrencyFull(market.price)} at ${new Date().toLocaleTimeString()}</div>
+                </div>
+                <div class="history-coin ${tone.textClass}">${formatPercent(market.change_24h)}</div>
+            `;
+
+            history.prepend(item);
+
+            while (history.children.length > 8) {
+                history.removeChild(history.lastElementChild);
+            }
+        }
+
+        function setAnalyzeLoading(isLoading) {
+            input.disabled = isLoading;
+            analyzeBtn.disabled = isLoading;
+            analyzeBtn.textContent = isLoading ? "Analyzing..." : "Analyze";
+        }
+
+        function setCompareLoading(isLoading) {
+            compare1.disabled = isLoading;
+            compare2.disabled = isLoading;
+            compareBtn.disabled = isLoading;
+            compareBtn.textContent = isLoading ? "Comparing..." : "Compare";
+        }
+
         input.addEventListener("input", function() {
-            if (input.value.toUpperCase() !== lastSymbol) {
-                button.disabled = false;
-                button.innerText = "Analyze";
+            if (input.value.trim().toUpperCase() !== lastAnalyzedSymbol) {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = "Analyze";
             }
+            clearStatus(feedback);
         });
 
-        // Pressing Enter does the same as clicking Analyze
         input.addEventListener("keydown", function(event) {
-            if (event.key === "Enter" && !button.disabled) {
-                button.click();
+            if (event.key === "Enter" && !analyzeBtn.disabled) {
+                analyzeBtn.click();
             }
         });
 
-        button.addEventListener("click", async function() {
+        analyzeBtn.addEventListener("click", async function() {
             const symbol = input.value.trim().toUpperCase();
-            if (!symbol) return;
-
-            button.disabled = true;
-            button.innerText = "Loading...";
-            result.innerText = "";
-            marketData.innerText = "";
-            badge.innerHTML = "";
-
-            // Call both endpoints at the same time
-            const [explainRes, cryptoRes] = await Promise.all([
-                fetch(`/crypto/explain?symbol=${symbol}`),
-                fetch(`/crypto?symbol=${symbol}`)
-            ]);
-
-            const explainData = await explainRes.json();
-            const cryptoData = await cryptoRes.json();
-
-            lastSymbol = symbol;
-            button.innerText = "Done";
-
-            // If the symbol is not supported, show error in red and stop
-            if (cryptoData.error) {
-                result.style.color = "#ef4444";
-                result.innerText = "❌ " + cryptoData.error;
-                button.disabled = false;
-                button.innerText = "Analyze";
-                lastSymbol = "";
+            if (!symbol) {
+                setStatus(feedback, "Enter a supported symbol like BTC, ETH, or SOL.", "error");
                 return;
             }
 
-            result.style.color = "#ffffff";
-            const change = cryptoData.change_24h.toFixed(2);
-            const changeColor = change >= 0 ? "#22c55e" : "#ef4444";
-            const changeArrow = change >= 0 ? "▲" : "▼";
-            marketData.innerHTML = `
-                <span>Price: <strong>$${cryptoData.price.toLocaleString()}</strong></span>
-                &nbsp;|&nbsp;
-                <span>24h Change: <strong style="color:${changeColor}">${changeArrow} ${change}%</strong></span>
-                &nbsp;|&nbsp;
-                <span>Volume: <strong>$${cryptoData.volume_24h.toLocaleString()}</strong></span>
-            `;
-            result.innerText = explainData.explanation || explainData.error;
+            clearStatus(feedback);
+            setAnalyzeLoading(true);
+            updatedAt.textContent = "Fetching live data...";
+            marketData.innerHTML = "";
+            badge.className = "sentiment sentiment-hidden";
+            badge.textContent = "";
+            result.className = "result-card";
+            result.textContent = "Generating explanation...";
 
-            // Sentiment badge
-            if (change > 2) {
-                badge.style.backgroundColor = "#166534";
-                badge.style.color = "#22c55e";
-                badge.innerText = "🟢 Bullish";
-            } else if (change < -2) {
-                badge.style.backgroundColor = "#7f1d1d";
-                badge.style.color = "#ef4444";
-                badge.innerText = "🔴 Bearish";
-            } else {
-                badge.style.backgroundColor = "#713f12";
-                badge.style.color = "#eab308";
-                badge.innerText = "🟡 Neutral";
+            try {
+                const [market, explanation] = await Promise.all([
+                    fetchJson(`/crypto?symbol=${encodeURIComponent(symbol)}`),
+                    fetchJson(`/crypto/explain?symbol=${encodeURIComponent(symbol)}`),
+                ]);
+
+                renderMarketCards(market);
+                result.textContent = explanation.explanation;
+                appendHistory(market);
+                lastAnalyzedSymbol = symbol;
+                analyzeBtn.textContent = "Analyzed";
+            } catch (error) {
+                marketData.innerHTML = "";
+                result.className = "result-card empty-state";
+                result.textContent = "No analysis available yet.";
+                updatedAt.textContent = "Waiting for analysis";
+                badge.className = "sentiment sentiment-hidden";
+                badge.textContent = "";
+                setStatus(feedback, error.message, "error");
+                lastAnalyzedSymbol = "";
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = "Analyze";
+            } finally {
+                input.disabled = false;
+                if (lastAnalyzedSymbol !== symbol) {
+                    analyzeBtn.disabled = false;
+                }
             }
+        });
 
-            // Add to history
-            const time = new Date().toLocaleTimeString();
-            history.innerHTML += `
-                <div class="history-item">
-                    <span><strong>${symbol}</strong> — $${cryptoData.price.toLocaleString()}</span>
-                    <span style="color:${changeColor}">${changeArrow} ${change}% &nbsp;|&nbsp; ${time}</span>
+        function renderCompareCards(left, right) {
+            const leftTone = changeTone(left.change_24h);
+            const rightTone = changeTone(right.change_24h);
+
+            compareCards.innerHTML = `
+                <div class="compare-coin">
+                    <h3>${left.symbol} <span class="history-meta">${left.name}</span></h3>
+                    <p>Price: ${formatCurrencyFull(left.price)}</p>
+                    <p class="${leftTone.textClass}">24h move: ${formatPercent(left.change_24h)}</p>
+                    <p>Volume: ${formatCurrencyCompact(left.volume_24h)}</p>
+                </div>
+                <div class="compare-coin">
+                    <h3>${right.symbol} <span class="history-meta">${right.name}</span></h3>
+                    <p>Price: ${formatCurrencyFull(right.price)}</p>
+                    <p class="${rightTone.textClass}">24h move: ${formatPercent(right.change_24h)}</p>
+                    <p>Volume: ${formatCurrencyCompact(right.volume_24h)}</p>
                 </div>
             `;
-        });
-        // Compare button
-        const compareBtn = document.getElementById("compareBtn");
-        const compareResult = document.getElementById("compareResult");
+        }
 
-        compareBtn.addEventListener("click", async function() {
-            const s1 = document.getElementById("compare1").value.trim();
-            const s2 = document.getElementById("compare2").value.trim();
-            if (!s1 || !s2) return;
+        async function runCompare() {
+            const leftSymbol = compare1.value.trim().toUpperCase();
+            const rightSymbol = compare2.value.trim().toUpperCase();
 
-            compareBtn.disabled = true;
-            compareBtn.innerText = "Loading...";
-            compareResult.innerText = "";
-
-            const res = await fetch(`/crypto/compare?symbol1=${s1}&symbol2=${s2}`);
-            const data = await res.json();
-
-            compareBtn.disabled = false;
-            compareBtn.innerText = "Compare";
-
-            if (data.error) {
-                compareResult.style.color = "#ef4444";
-                compareResult.innerText = "❌ " + data.error;
-            } else {
-                compareResult.style.color = "#ffffff";
-                compareResult.innerText = data.comparison;
+            if (!leftSymbol || !rightSymbol) {
+                setStatus(compareFeedback, "Enter two supported symbols to compare.", "error");
+                return;
             }
+
+            clearStatus(compareFeedback);
+            setCompareLoading(true);
+            compareCards.innerHTML = "";
+            compareResult.className = "compare-card";
+            compareResult.textContent = "Generating comparison...";
+
+            try {
+                const data = await fetchJson(
+                    `/crypto/compare?symbol1=${encodeURIComponent(leftSymbol)}&symbol2=${encodeURIComponent(rightSymbol)}`
+                );
+
+                renderCompareCards(data.left, data.right);
+                compareResult.textContent = data.comparison;
+            } catch (error) {
+                compareCards.innerHTML = "";
+                compareResult.className = "compare-card empty-state";
+                compareResult.textContent = "No comparison available yet.";
+                setStatus(compareFeedback, error.message, "error");
+            } finally {
+                setCompareLoading(false);
+            }
+        }
+
+        compareBtn.addEventListener("click", runCompare);
+
+        [compare1, compare2].forEach(function(field) {
+            field.addEventListener("keydown", function(event) {
+                if (event.key === "Enter" && !compareBtn.disabled) {
+                    runCompare();
+                }
+            });
+
+            field.addEventListener("input", function() {
+                clearStatus(compareFeedback);
+            });
         });
     </script>
-
 </body>
 </html>
