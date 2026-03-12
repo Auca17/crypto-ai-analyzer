@@ -24,7 +24,49 @@ SYMBOL_MAP = {
 
 @app.get("/")
 def home():
-    return {"message": "Crypto AI Analyzer running"}
+    return {"message": "Crypto AI Analyzer running", "supported": list(SYMBOL_MAP.keys())}
+
+
+@app.get("/crypto/compare")
+def compare_crypto(symbol1: str, symbol2: str):
+    coin1 = SYMBOL_MAP.get(symbol1.upper())
+    coin2 = SYMBOL_MAP.get(symbol2.upper())
+
+    if not coin1:
+        return {"error": f"'{symbol1.upper()}' is not supported."}
+    if not coin2:
+        return {"error": f"'{symbol2.upper()}' is not supported."}
+
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin1},{coin2}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true"
+    data = requests.get(url).json()
+
+    d1 = data[coin1]
+    d2 = data[coin2]
+
+    prompt = (
+        f"You are a friendly crypto market analyst. "
+        f"Compare these two cryptocurrencies in 4-5 sentences in plain language a beginner can understand. "
+        f"Mention which one is performing better right now and why, based on the data.\n\n"
+        f"{symbol1.upper()}:\n"
+        f"- Price: ${d1['usd']:,.2f}\n"
+        f"- 24h Change: {d1['usd_24h_change']:.2f}%\n"
+        f"- Volume: ${d1['usd_24h_vol']:,.0f}\n\n"
+        f"{symbol2.upper()}:\n"
+        f"- Price: ${d2['usd']:,.2f}\n"
+        f"- 24h Change: {d2['usd_24h_change']:.2f}%\n"
+        f"- Volume: ${d2['usd_24h_vol']:,.0f}"
+    )
+
+    chat = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return {
+        symbol1.upper(): {"price": d1["usd"], "change_24h": d1["usd_24h_change"]},
+        symbol2.upper(): {"price": d2["usd"], "change_24h": d2["usd_24h_change"]},
+        "comparison": chat.choices[0].message.content
+    }
 
 @app.get("/crypto")
 def get_crypto(symbol: str):

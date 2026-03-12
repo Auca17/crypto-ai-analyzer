@@ -49,10 +49,34 @@
             color: #a0a0a0;
         }
 
+        #badge {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
         #result {
             margin-top: 16px;
             line-height: 1.7;
             font-size: 15px;
+        }
+
+        #history {
+            margin-top: 40px;
+            border-top: 1px solid #333;
+            padding-top: 16px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-size: 14px;
+            color: #a0a0a0;
         }
     </style>
 </head>
@@ -63,7 +87,17 @@
     <button>Analyze</button>
 
     <div id="marketData"></div>
+    <div id="badge"></div>
     <div id="result"></div>
+
+    <div id="history"></div>
+
+    <hr style="border-color:#333; margin-top:40px;">
+    <h2 style="font-size:18px; margin-top:24px;">Compare two coins</h2>
+    <input type="text" id="compare1" placeholder="First coin: BTC" style="width:30%;">
+    <input type="text" id="compare2" placeholder="Second coin: ETH" style="width:30%; margin-left:8px;">
+    <button id="compareBtn" style="margin-left:8px;">Compare</button>
+    <div id="compareResult" style="margin-top:16px; line-height:1.7; font-size:15px;"></div>
 
     <script>
         let lastSymbol = "";
@@ -72,6 +106,8 @@
         const button = document.querySelector("button");
         const result = document.getElementById("result");
         const marketData = document.getElementById("marketData");
+        const badge = document.getElementById("badge");
+        const history = document.getElementById("history");
 
         // When the user changes what's in the input, re-enable the button
         input.addEventListener("input", function() {
@@ -96,6 +132,7 @@
             button.innerText = "Loading...";
             result.innerText = "";
             marketData.innerText = "";
+            badge.innerHTML = "";
 
             // Call both endpoints at the same time
             const [explainRes, cryptoRes] = await Promise.all([
@@ -109,6 +146,17 @@
             lastSymbol = symbol;
             button.innerText = "Done";
 
+            // If the symbol is not supported, show error in red and stop
+            if (cryptoData.error) {
+                result.style.color = "#ef4444";
+                result.innerText = "❌ " + cryptoData.error;
+                button.disabled = false;
+                button.innerText = "Analyze";
+                lastSymbol = "";
+                return;
+            }
+
+            result.style.color = "#ffffff";
             const change = cryptoData.change_24h.toFixed(2);
             const changeColor = change >= 0 ? "#22c55e" : "#ef4444";
             const changeArrow = change >= 0 ? "▲" : "▼";
@@ -120,6 +168,57 @@
                 <span>Volume: <strong>$${cryptoData.volume_24h.toLocaleString()}</strong></span>
             `;
             result.innerText = explainData.explanation || explainData.error;
+
+            // Sentiment badge
+            if (change > 2) {
+                badge.style.backgroundColor = "#166534";
+                badge.style.color = "#22c55e";
+                badge.innerText = "🟢 Bullish";
+            } else if (change < -2) {
+                badge.style.backgroundColor = "#7f1d1d";
+                badge.style.color = "#ef4444";
+                badge.innerText = "🔴 Bearish";
+            } else {
+                badge.style.backgroundColor = "#713f12";
+                badge.style.color = "#eab308";
+                badge.innerText = "🟡 Neutral";
+            }
+
+            // Add to history
+            const time = new Date().toLocaleTimeString();
+            history.innerHTML += `
+                <div class="history-item">
+                    <span><strong>${symbol}</strong> — $${cryptoData.price.toLocaleString()}</span>
+                    <span style="color:${changeColor}">${changeArrow} ${change}% &nbsp;|&nbsp; ${time}</span>
+                </div>
+            `;
+        });
+        // Compare button
+        const compareBtn = document.getElementById("compareBtn");
+        const compareResult = document.getElementById("compareResult");
+
+        compareBtn.addEventListener("click", async function() {
+            const s1 = document.getElementById("compare1").value.trim();
+            const s2 = document.getElementById("compare2").value.trim();
+            if (!s1 || !s2) return;
+
+            compareBtn.disabled = true;
+            compareBtn.innerText = "Loading...";
+            compareResult.innerText = "";
+
+            const res = await fetch(`/crypto/compare?symbol1=${s1}&symbol2=${s2}`);
+            const data = await res.json();
+
+            compareBtn.disabled = false;
+            compareBtn.innerText = "Compare";
+
+            if (data.error) {
+                compareResult.style.color = "#ef4444";
+                compareResult.innerText = "❌ " + data.error;
+            } else {
+                compareResult.style.color = "#ffffff";
+                compareResult.innerText = data.comparison;
+            }
         });
     </script>
 
